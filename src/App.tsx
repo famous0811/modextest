@@ -1,26 +1,63 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React,{useState} from 'react';
+import { observer, inject } from 'mobx-react';
+import {Row,Col,Divider,Button,Modal,Input,Rate} from "antd";
+import Card from "./Card";
+import MovieStore from "./store/Movie";
 
-function App() {
+const movie = new MovieStore();
+
+// @observer 
+// @inject('movie')
+const App= observer(()=>{
+  const [isModel,setisModel]=useState(false);
+  const [newRate,setRate] =useState(0);
+  const [newTitle,setTitle] =useState("");
+
+  const onReatechange=(value:any)=>{
+    setRate(value);
+  }
+  const onModal=()=>{
+    movie.CreateMovie(newTitle,newRate);
+    setTitle('');
+    setRate(0);
+    setisModel(false);
+  }
+
+  const onDelete=(id:any)=>{
+    movie.DeleteMovie(id);
+  }
+  const onExistingRateChange=(id:number,value:number)=>{
+    movie.ChangeMovie(id,value);
+  }
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <> 
+      <Row justify="center">
+            <Button type="primary" danger onClick={()=>setisModel(true)}>
+              추가하기
+            </Button>
+      </Row>
+      <Divider/>
+      {
+        movie.movies.map((movie) =>(
+          <>
+            <Row>
+              <Card key={movie.id}
+                title={movie.title}
+                rate={movie.rate}
+                onChange={(value:any) =>onExistingRateChange(movie.id, value)}
+                onDelete={()=>onDelete(movie.id)}
+              />
+            </Row>
+          </>
+        ))
+      }
+      <Modal title="추가하기" visible={isModel} onOk={onModal} onCancel={()=>setisModel(false)}>
+        <Input placeholder="영화이름을 입력해주세요" value={newTitle} onChange={(e:any)=>setTitle(e.target.value)}/>
+        <Rate onChange={onReatechange} value={newRate}/>
+      </Modal>
+    </>
   );
-}
+});
 
 export default App;
